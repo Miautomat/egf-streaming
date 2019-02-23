@@ -6,6 +6,11 @@ https://console.firebase.google.com/u/0/project/egf-streaming/database/firestore
 ### Adding new labels
 Add a document to the labels collection, use the filename as document id and a field named "content" for the supposed file content.
 
+## Get started
+```
+npm install
+
+```
 ## Running the tool
 
 ```
