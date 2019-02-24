@@ -35,8 +35,8 @@ function retrieveAndWriteData(dir, doc_data) {
       writeFile(path, value);
     } else {
       Object.keys(value).forEach( sub_key => {
-        path = `${path}${sub_key.charAt(0).toUpperCase() + sub_key.slice(1)}`
-        writeFile(path, value[sub_key]);
+        sub_path = `${path}${sub_key.charAt(0).toUpperCase() + sub_key.slice(1)}`
+        writeFile(sub_path, value[sub_key]);
       });
     }
   });
