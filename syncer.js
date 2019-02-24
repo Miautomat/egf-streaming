@@ -44,7 +44,7 @@ function writeFile(dir, value) {
         console.log(err);
       }
     });
-  //  console.log("successfully written: " + `${dir}.txt`);
+    console.log("successfully written: " + `${dir}.txt`);
   } else {
     Object.keys(value).forEach( key => {
       writeFile(`${dir}${key.charAt(0).toUpperCase() + key.slice(1)}`, value[key]);
@@ -83,9 +83,8 @@ function writePlayerData(doc_id, keys, player) {
 }
 
 function findPins(doc_id, key_string, value) {
-  if (key_string.includes("black") || key_string.includes("white") && !(value instanceof Object)){
+  if ((key_string.includes("black") || key_string.includes("white")) && !(value instanceof Object)){
     var data_string = findPlayer(value);
-    console.log(data_string);
     var player = makePlayer(data_string);
     writePlayerData(doc_id, key_string, player);
   } else if (!(value instanceof Object)) {
