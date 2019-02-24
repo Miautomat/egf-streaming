@@ -19,17 +19,28 @@ const text_collection = db.collection(text_directory_name);
 
 text_collection.onSnapshot(snapshot => {
   snapshot.forEach(doc => {
-    findPins(doc.id, "", doc.data());
+    findPinsAndAddData(doc);
     var start_dir = `${__dirname}/${text_directory_name}/${doc.id}/`;
     writeDirectory(start_dir);
-    writeFile(start_dir, doc.data())
+    retrieveAndWriteData(start_dir, doc.data())
   });
 });
 
-text_collection.onSnapshot(snapshot => {
-  snapshot.forEach(doc => {
-  })
-});
+// Maximum depht of structure: 2! document = {attribute: { key: value, ...}}
+function retrieveAndWriteData(dir, doc_data) {
+  Object.keys(doc_data).forEach( key => {
+    var path = `${dir}${key.charAt(0).toUpperCase() + key.slice(1)}`;
+    value = doc_data[key];
+    if (!(value instanceof Object)){
+      writeFile(path, value);
+    } else {
+      Object.keys(value).forEach( sub_key => {
+        path = `${path}${sub_key.charAt(0).toUpperCase() + sub_key.slice(1)}`
+        writeFile(path, value[sub_key]);
+      });
+    }
+  });
+}
 
 function writeDirectory(dir) {
   mkdirp(dir, function (err) {
@@ -37,19 +48,24 @@ function writeDirectory(dir) {
   });
 }
 
-function writeFile(dir, value) {
- if (!(value instanceof Object)){
-    fs.writeFile(`${dir}.txt`, value, err => {
-      if(err) {
-        console.log(err);
-      }
-    });
-    console.log("successfully written: " + `${dir}.txt`);
-  } else {
-    Object.keys(value).forEach( key => {
-      writeFile(`${dir}${key.charAt(0).toUpperCase() + key.slice(1)}`, value[key]);
-    });
-  }
+function writeFile(path, value) {
+  fs.writeFile(`${path}.txt`, value, err => {
+    if(err) {
+      console.log(err);
+    }
+  });
+  console.log("successfully written: " + `${path}.txt`);
+}
+
+function findPinsAndAddData(doc) {
+  var doc_data = doc.data();
+  Object.keys(doc_data).forEach( key => {
+    if((key.includes("black") || key.includes("white")) && !(doc_data[key] instanceof Object)) {
+      var data = findPlayer(doc_data[key]);
+      var player = makePlayer(data);
+      writePlayerData(doc.id, key, player);
+    }
+  });
 }
 
 function findPlayer(pin) {
@@ -73,31 +89,11 @@ function makePlayer(data) {
   return player;
 }
 
-function writePlayerData(doc_id, keys, player) {
+function writePlayerData(doc_id, key, player) {
   var object = {};
-  for (const [key, value] of player) {
-    attribute_name = `${keys}.${key}`;
+  for (const [sub_key, value] of player) {
+    attribute_name = `${key}.${sub_key}`;
     object[attribute_name] = value;
   };
   text_collection.doc(doc_id).update(object);
-}
-
-function findPins(doc_id, key_string, value) {
-  if ((key_string.includes("black") || key_string.includes("white")) && !(value instanceof Object)){
-    var data_string = findPlayer(value);
-    var player = makePlayer(data_string);
-    writePlayerData(doc_id, key_string, player);
-  } else if (!(value instanceof Object)) {
-    return;
-  } else {
-    Object.keys(value).forEach( key => {
-      var future_key = "";
-      if(key_string === ""){
-        future_key = key;
-      } else {
-        furute_key = `${key_string}.${key}`
-      }
-      findPins(doc_id, `${future_key}`, value[key]);
-    });
-  }
 }
